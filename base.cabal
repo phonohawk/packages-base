@@ -160,6 +160,8 @@ Library {
         Data.Tuple,
         Data.Typeable,
         Data.Typeable.Internal,
+        Data.OldTypeable,
+        Data.OldTypeable.Internal,
         Data.Unique,
         Data.Version,
         Data.Word,
