@@ -178,6 +178,11 @@ typeRepTyCon (TypeRep _ tc _) = tc
 typeRepArgs :: TypeRep -> [TypeRep]
 typeRepArgs (TypeRep _ _ args) = args
 
+-- | Observe string encoding of a type representation
+{-# DEPRECATED tyConString "renamed to tyConName; tyConModule and tyConPackage are also available." #-}
+tyConString :: TyCon   -> String
+tyConString = tyConName
+
 -------------------------------------------------------------
 --
 --      The Typeable class and friends
