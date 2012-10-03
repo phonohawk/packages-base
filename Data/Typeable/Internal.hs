@@ -19,7 +19,6 @@
            , FlexibleInstances
            , MagicHash
            , KindSignatures
-           , UndecidableInstances -- JPM: do we accept this?
            , PolyKinds #-}
 #ifdef __GLASGOW_HASKELL__
 {-# LANGUAGE DeriveDataTypeable, StandaloneDeriving #-}
@@ -29,7 +28,7 @@ module Data.Typeable.Internal (
     Proxy (..),
     TypeRep(..),
     Fingerprint(..),
-    typeOf, typeOf1, typeOf2,
+    typeOf, typeOf1, typeOf2, typeOf3, typeOf4, typeOf5, typeOf6, typeOf7,
     TyCon(..),
     mkTyCon,
     mkTyCon3,
@@ -49,7 +48,6 @@ module Data.Typeable.Internal (
 import GHC.Base
 import GHC.Word
 import GHC.Show
-import GHC.Err          (undefined)
 import Data.Maybe
 import Data.List
 import GHC.Num
@@ -189,22 +187,6 @@ tyConString = tyConName
 --
 -------------------------------------------------------------
 
-{- Note [Memoising typeOf]
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-IMPORTANT: we don't want to recalculate the type-rep once per
-call to the dummy argument.  This is what went wrong in Trac #3245
-So we help GHC by manually keeping the 'rep' *outside* the value 
-lambda, thus
-    
-    typeOfDefault :: forall t a. (Typeable1 t, Typeable a) => t a -> TypeRep
-    typeOfDefault = \_ -> rep
-      where
-        rep = typeOf1 (undefined :: t a) `mkAppTy` 
-              typeOf  (undefined :: a)
-
-Notice the crucial use of scoped type variables here!
--}
-
 -- | A proxy type
 data Proxy t = Proxy
 
@@ -213,11 +195,9 @@ data Proxy t = Proxy
 class Typeable a where
   typeRep :: Proxy a -> TypeRep
   -- ^ Takes a value of type @a@ and returns a concrete representation
-  -- of that type.  The /value/ of the argument should be ignored by
-  -- any instance of 'Typeable', so that it is safe to pass 'undefined' as
-  -- the argument.
+  -- of that type.
 
-{-# DEPRECATED typeOf, typeOf1, typeOf2 "Use typeRep instead" #-}
+{-# DEPRECATED typeOf, typeOf1, typeOf2, typeOf3, typeOf4, typeOf5, typeOf6, typeOf7 "Use typeRep instead" #-}
 typeOf :: forall a. Typeable a => a -> TypeRep
 typeOf _ = typeRep (Proxy :: Proxy a)
 
@@ -227,17 +207,29 @@ typeOf1 _ = typeRep (Proxy :: Proxy t)
 typeOf2 :: forall t (a :: *) (b :: *). Typeable t => t a b -> TypeRep
 typeOf2 _ = typeRep (Proxy :: Proxy t)
 
--- JPM: write the others up to 7
+typeOf3 :: forall t (a :: *) (b :: *) (c :: *). Typeable t
+        => t a b c -> TypeRep
+typeOf3 _ = typeRep (Proxy :: Proxy t)
 
--- Given a @Typeable@/n/ instance for an /n/-ary type constructor,
--- define the instances for partial applications.
--- Programmers using non-GHC implementations must do this manually
--- for each type constructor.
+typeOf4 :: forall t (a :: *) (b :: *) (c :: *) (d :: *). Typeable t
+        => t a b c d -> TypeRep
+typeOf4 _ = typeRep (Proxy :: Proxy t)
 
--- | One Typeable instance for all Typeable1 instances
-instance (Typeable s, Typeable a)
-       => Typeable (s a) where
-  typeRep = undefined -- JPM: To do
+typeOf5 :: forall t (a :: *) (b :: *) (c :: *) (d :: *) (e :: *). Typeable t
+        => t a b c d e -> TypeRep
+typeOf5 _ = typeRep (Proxy :: Proxy t)
+
+typeOf6 :: forall t (a :: *) (b :: *) (c :: *) (d :: *) (e :: *) (f :: *).
+                Typeable t => t a b c d e f -> TypeRep
+typeOf6 _ = typeRep (Proxy :: Proxy t)
+
+typeOf7 :: forall t (a :: *) (b :: *) (c :: *) (d :: *) (e :: *) (f :: *)
+                (g :: *). Typeable t => t a b c d e f g -> TypeRep
+typeOf7 _ = typeRep (Proxy :: Proxy t)
+
+-- | Kind-polymorphic Typeable instance for type application
+instance (Typeable s, Typeable a) => Typeable (s a) where
+  typeRep _ = typeRep (Proxy :: Proxy s) `mkAppTy` typeRep (Proxy :: Proxy a)
 
 
 ----------------- Showing TypeReps --------------------

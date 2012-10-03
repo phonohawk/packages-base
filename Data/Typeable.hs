@@ -45,7 +45,7 @@ module Data.Typeable
         Typeable( typeRep ),     -- :: Proxy a -> TypeRep
 
         -- * For backwards compatibility
-        typeOf, typeOf1, typeOf2,
+        typeOf, typeOf1, typeOf2, typeOf3, typeOf4, typeOf5, typeOf6, typeOf7,
 
         -- * Type-safe cast
         cast,                   -- :: (Typeable a, Typeable b) => a -> Maybe b
