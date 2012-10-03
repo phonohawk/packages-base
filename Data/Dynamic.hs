@@ -1,7 +1,7 @@
 {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE CPP, NoImplicitPrelude #-}
 #ifdef __GLASGOW_HASKELL__
-{-# LANGUAGE DeriveDataTypeable, StandaloneDeriving #-}
+{-# LANGUAGE DeriveDataTypeable, StandaloneDeriving, ScopedTypeVariables #-}
 #endif
 
 -----------------------------------------------------------------------------
@@ -124,33 +124,33 @@ data Obj = Obj
 --
 -- >    toDyn (id :: Int -> Int)
 --
-toDyn :: Typeable a => a -> Dynamic
-toDyn v = Dynamic (typeOf v) (unsafeCoerce v)
+toDyn :: forall a. Typeable a => a -> Dynamic
+toDyn v = Dynamic (typeRep (Proxy :: Proxy a)) (unsafeCoerce v)
 
 -- | Converts a 'Dynamic' object back into an ordinary Haskell value of
 -- the correct type.  See also 'fromDynamic'.
-fromDyn :: Typeable a
+fromDyn :: forall a. Typeable a
         => Dynamic      -- ^ the dynamically-typed object
         -> a            -- ^ a default value 
         -> a            -- ^ returns: the value of the first argument, if
                         -- it has the correct type, otherwise the value of
                         -- the second argument.
 fromDyn (Dynamic t v) def
-  | typeOf def == t = unsafeCoerce v
-  | otherwise       = def
+  | typeRep (Proxy :: Proxy a) == t = unsafeCoerce v
+  | otherwise                       = def
 
 -- | Converts a 'Dynamic' object back into an ordinary Haskell value of
 -- the correct type.  See also 'fromDyn'.
 fromDynamic
-        :: Typeable a
+        :: forall a. Typeable a
         => Dynamic      -- ^ the dynamically-typed object
         -> Maybe a      -- ^ returns: @'Just' a@, if the dynamically-typed
                         -- object has the correct type (and @a@ is its value), 
                         -- or 'Nothing' otherwise.
 fromDynamic (Dynamic t v) =
   case unsafeCoerce v of 
-    r | t == typeOf r -> Just r
-      | otherwise     -> Nothing
+    r | t == typeRep (Proxy :: Proxy a) -> Just r
+      | otherwise                       -> Nothing
 
 -- (f::(a->b)) `dynApply` (x::a) = (f a)::b
 dynApply :: Dynamic -> Dynamic -> Maybe Dynamic

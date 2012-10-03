@@ -6,7 +6,7 @@
            , ForeignFunctionInterface
            , FlexibleInstances
   #-}
-{-# OPTIONS_GHC -funbox-strict-fields #-}
+{-# OPTIONS_GHC -funbox-strict-fields -fno-warn-warnings-deprecations #-}
 
 -- The -XOverlappingInstances flag allows the user to over-ride
 -- the instances for Typeable given here.  In particular, we provide an instance

@@ -77,9 +77,6 @@ module Data.Typeable
         funResultTy,    -- :: TypeRep -> TypeRep   -> Maybe TypeRep
         typeRepTyCon,   -- :: TypeRep -> TyCon
         typeRepArgs,    -- :: TypeRep -> [TypeRep]
-        -- typeRepKey,     -- :: TypeRep -> IO TypeRepKey
-        TypeRepKey,     -- abstract, instance of Eq, Ord
-
   ) where
 
 import Data.Typeable.Internal hiding (mkTyCon)
@@ -89,16 +86,6 @@ import Data.Maybe
 
 import GHC.Base
 import GHC.Err          (undefined)
-
-import {-# SOURCE #-} GHC.Fingerprint
-   -- loop: GHC.Fingerprint -> Foreign.Ptr -> Data.Typeable
-   -- Better to break the loop here, because we want non-SOURCE imports
-   -- of Data.Typeable as much as possible so we can optimise the derived
-   -- instances.
-
-
-newtype TypeRepKey = TypeRepKey Fingerprint
-  deriving (Eq,Ord)
 
 -------------------------------------------------------------
 --
