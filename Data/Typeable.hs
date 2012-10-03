@@ -66,7 +66,7 @@ module Data.Typeable
         tyConName,      -- :: TyCon   -> String
 
         -- * Construction of type representations
-        mkTyCon,        -- :: String  -> TyCon
+        -- mkTyCon,        -- :: String  -> TyCon
         mkTyCon3,       -- :: String  -> String -> String -> TyCon
         mkTyConApp,     -- :: TyCon   -> [TypeRep] -> TypeRep
         mkAppTy,        -- :: TypeRep -> TypeRep   -> TypeRep
@@ -77,7 +77,7 @@ module Data.Typeable
         funResultTy,    -- :: TypeRep -> TypeRep   -> Maybe TypeRep
         typeRepTyCon,   -- :: TypeRep -> TyCon
         typeRepArgs,    -- :: TypeRep -> [TypeRep]
-        typeRepKey,     -- :: TypeRep -> IO TypeRepKey
+        -- typeRepKey,     -- :: TypeRep -> IO TypeRepKey
         TypeRepKey,     -- abstract, instance of Eq, Ord
 
   ) where
@@ -107,40 +107,31 @@ newtype TypeRepKey = TypeRepKey Fingerprint
 -------------------------------------------------------------
 
 -- | The type-safe cast operation
-cast :: (Typeable a, Typeable b) => a -> Maybe b
-cast x = r
-       where
-         r = if typeOf x == typeOf (fromJust r)
-               then Just $ unsafeCoerce x
-               else Nothing
+cast :: forall a b. (Typeable a, Typeable b) => a -> Maybe b
+cast x = if typeRep (Proxy :: Proxy a) == typeRep (Proxy :: Proxy b)
+           then Just $ unsafeCoerce x
+           else Nothing
 
 -- | A flexible variation parameterised in a type constructor
 gcast :: (Typeable (a :: *), Typeable b) => c a -> Maybe (c b)
 gcast x = r
  where
-  r = if typeOf (getArg x) == typeOf (getArg (fromJust r))
+  r = if typeRep (getArg x) == typeRep (getArg (fromJust r))
         then Just $ unsafeCoerce x
         else Nothing
   getArg :: c x -> Proxy x 
   getArg = undefined
 
 -- | Cast for * -> *
-gcast1 :: (Typeable (t :: * -> *), Typeable1 t') => c (t a) -> Maybe (c (t' a)) 
-gcast1 x = r
- where
-  r = if typeOf1 (getArg x) == typeOf1 (getArg (fromJust r))
-       then Just $ unsafeCoerce x
-       else Nothing
-  getArg :: c x -> Proxy x 
-  getArg = undefined
+gcast1 :: forall c t t' a. (Typeable (t :: * -> *), Typeable t')
+       => c (t a) -> Maybe (c (t' a)) 
+gcast1 x = if typeRep (Proxy :: Proxy t) == typeRep (Proxy :: Proxy t')
+             then Just $ unsafeCoerce x
+             else Nothing
 
 -- | Cast for * -> * -> *
-gcast2 :: (Typeable (t :: * -> * -> *), Typeable t') => c (t a b) -> Maybe (c (t' a b)) 
-gcast2 x = r
- where
-  r = if typeOf2 (getArg x) == typeOf2 (getArg (fromJust r))
-       then Just $ unsafeCoerce x
-       else Nothing
-  getArg :: c x -> Proxy x 
-  getArg = undefined
-
+gcast2 :: forall c t t' a b. (Typeable (t :: * -> * -> *), Typeable t')
+       => c (t a b) -> Maybe (c (t' a b)) 
+gcast2 x = if typeRep (Proxy :: Proxy t) == typeRep (Proxy :: Proxy t')
+             then Just $ unsafeCoerce x
+             else Nothing

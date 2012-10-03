@@ -133,7 +133,7 @@ import NHC.FFI  ( Ptr,FunPtr,StablePtr,ForeignPtr )
 import Array    ( Array )
 #endif
 
-#include "Typeable.h"
+#include "OldTypeable.h"
 
 {-# DEPRECATED typeRepKey "TypeRep itself is now an instance of Ord" #-}
 -- | (DEPRECATED) Returns a unique key associated with a 'TypeRep'.

@@ -73,6 +73,7 @@ newtype Fixed a = MkFixed Integer
         deriving (Eq,Ord)
 #endif
 
+{- JPM: FIX
 #ifndef __NHC__
 -- We do this because the automatically derived Data instance requires (Data a) context.
 -- Our manual instance has the more general (Typeable a) context.
@@ -86,6 +87,7 @@ instance (Typeable a) => Data (Fixed a) where
     dataTypeOf _ = tyFixed
     toConstr _ = conMkFixed
 #endif
+-}
 
 class HasResolution a where
     resolution :: p a -> Integer

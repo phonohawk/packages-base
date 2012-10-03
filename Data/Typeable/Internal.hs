@@ -287,17 +287,11 @@ listTc = typeRepTyCon (typeOf [()])
 funTc :: TyCon
 funTc = mkTyCon3 "ghc-prim" "GHC.Types" "->"
 
--- JPM: delete
-instance Typeable ()
-instance Typeable []
-
 -------------------------------------------------------------
 --
 --      Instances of the Typeable classes for Prelude types
 --
 -------------------------------------------------------------
-{-
--- JPM: adapt this
 
 #include "Typeable.h"
 
@@ -313,7 +307,7 @@ libraries/base/Data/Typeable.hs:589:1:
       The last argument of the instance must be a data or newtype application
     In the stand-alone deriving instance for `Typeable2 (->)'
 -}
-instance Typeable2 (->) where { typeOf2 _ = mkTyConApp funTc [] }
+instance Typeable (->) where { typeRep _ = mkTyConApp funTc [] }
 #else
 INSTANCE_TYPEABLE2((->),funTc,"->")
 #endif
@@ -397,7 +391,6 @@ libraries/base/Data/Typeable.hs:674:1:
 -}
 realWorldTc :: TyCon; \
 realWorldTc = mkTyCon3 "ghc-prim" "GHC.Types" "RealWorld"; \
-instance Typeable RealWorld where { typeOf _ = mkTyConApp realWorldTc [] }
+instance Typeable RealWorld where { typeRep _ = mkTyConApp realWorldTc [] }
 
 #endif
--}

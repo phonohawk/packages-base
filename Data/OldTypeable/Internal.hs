@@ -470,7 +470,7 @@ funTc = mkTyCon3 "ghc-prim" "GHC.Types" "->"
 --
 -------------------------------------------------------------
 
-#include "Typeable.h"
+#include "OldTypeable.h"
 
 INSTANCE_TYPEABLE0((),unitTc,"()")
 INSTANCE_TYPEABLE1([],listTc,"[]")
