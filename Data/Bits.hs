@@ -21,28 +21,28 @@
 
 module Data.Bits ( 
   Bits(
-    (.&.), (.|.), xor, -- :: a -> a -> a
-    complement,        -- :: a -> a
-    shift,             -- :: a -> Int -> a
-    rotate,            -- :: a -> Int -> a
-    bit,               -- :: Int -> a
-    setBit,            -- :: a -> Int -> a
-    clearBit,          -- :: a -> Int -> a
-    complementBit,     -- :: a -> Int -> a
-    testBit,           -- :: a -> Int -> Bool
-    bitSize,           -- :: a -> Int
-    isSigned,          -- :: a -> Bool
-    shiftL, shiftR,    -- :: a -> Int -> a
-    unsafeShiftL, unsafeShiftR,  -- :: a -> Int -> a
-    rotateL, rotateR,  -- :: a -> Int -> a
-    popCount           -- :: a -> Int
+    (.&.), (.|.), xor,
+    complement,
+    shift,
+    rotate,
+    bit,
+    setBit,
+    clearBit,
+    complementBit,
+    testBit,
+    bitSizeMaybe,
+    bitSize,
+    isSigned,
+    shiftL, shiftR,
+    unsafeShiftL, unsafeShiftR,
+    rotateL, rotateR,
+    popCount
   ),
+  FiniteBits(finiteBitSize),
 
   bitDefault,
   testBitDefault,
   popCountDefault
-  -- instance Bits Int
-  -- instance Bits Integer
  ) where
 
 -- Defines the @Bits@ class containing bit-based operations.
@@ -54,6 +54,7 @@ module Data.Bits (
 #endif
 
 #ifdef __GLASGOW_HASKELL__
+import Data.Maybe
 import GHC.Enum
 import GHC.Num
 import GHC.Base
@@ -67,6 +68,8 @@ infixl 8 `shift`, `rotate`, `shiftL`, `shiftR`, `rotateL`, `rotateR`
 infixl 7 .&.
 infixl 6 `xor`
 infixl 5 .|.
+
+{-# DEPRECATED bitSize "Use bitSizeMaybe or finiteBitSize instead" #-}
 
 {-| 
 The 'Bits' class defines bitwise operations over integral types.
@@ -150,6 +153,12 @@ class Eq a => Bits a where
 
     -- | Return 'True' if the @n@th bit of the argument is 1
     testBit           :: a -> Int -> Bool
+
+    {-| Return the number of bits in the type of the argument.  The actual
+        value of the argument is ignored.  Returns Nothing
+        for types that do not have a fixed bitsize, like 'Integer'.
+        -}
+    bitSizeMaybe      :: a -> Maybe Int
 
     {-| Return the number of bits in the type of the argument.  The actual
         value of the argument is ignored.  The function 'bitSize' is
@@ -238,18 +247,25 @@ class Eq a => Bits a where
         known as the population count or the Hamming weight. -}
     popCount          :: a -> Int
 
+class Bits b => FiniteBits b where
+    finiteBitSize :: b -> Int
+
+-- The defaults below are written with lambdas so that e.g.
+--     bit = bitDefault
+-- is fully applied, so inlining will happen
+
 -- | Default implementation for 'bit'.
 --
 -- Note that: @bitDefault i = 1 `shiftL` i@
 bitDefault :: (Bits a, Num a) => Int -> a
-bitDefault i = 1 `shiftL` i
+bitDefault = \i -> 1 `shiftL` i
 {-# INLINE bitDefault #-}
 
 -- | Default implementation for 'testBit'.
 --
 -- Note that: @testBitDefault x i = (x .&. bit i) /= 0@
 testBitDefault ::  (Bits a, Num a) => a -> Int -> Bool
-testBitDefault x i = (x .&. bit i) /= 0
+testBitDefault = \x i -> (x .&. bit i) /= 0
 {-# INLINE testBitDefault #-}
 
 -- | Default implementation for 'popCount'.
@@ -297,7 +313,8 @@ instance Bits Int where
         !x'# = int2Word# x#
         !i'# = word2Int# (int2Word# i# `and#` int2Word# (wsib -# 1#))
         !wsib = WORD_SIZE_IN_BITS#   {- work around preprocessor problem (??) -}
-    bitSize  _             = WORD_SIZE_IN_BITS
+    bitSizeMaybe i         = Just (finiteBitSize i)
+    bitSize i              = finiteBitSize i
 
     popCount (I# x#) = I# (word2Int# (popCnt# (int2Word# x#)))
 
@@ -338,6 +355,9 @@ instance Bits Int where
 
     isSigned _             = True
 
+instance FiniteBits Int where
+    finiteBitSize _ = WORD_SIZE_IN_BITS
+
 #ifdef __NHC__
 foreign import ccall nhc_primIntAnd :: Int -> Int -> Int
 foreign import ccall nhc_primIntOr  :: Int -> Int -> Int
@@ -371,11 +391,15 @@ instance Bits Word where
         where
         !i'# = word2Int# (int2Word# i# `and#` int2Word# (wsib -# 1#))
         !wsib = WORD_SIZE_IN_BITS#  {- work around preprocessor problem (??) -}
-    bitSize  _               = WORD_SIZE_IN_BITS
+    bitSizeMaybe i           = Just (finiteBitSize i)
+    bitSize i                = finiteBitSize i
     isSigned _               = False
     popCount (W# x#)         = I# (word2Int# (popCnt# x#))
     bit                      = bitDefault
     testBit                  = testBitDefault
+
+instance FiniteBits Word where
+    finiteBitSize _ = WORD_SIZE_IN_BITS
 #endif
 
 instance Bits Integer where
@@ -413,6 +437,7 @@ instance Bits Integer where
 
    rotate x i = shift x i   -- since an Integer never wraps around
 
+   bitSizeMaybe _ = Nothing
    bitSize _  = error "Data.Bits.bitSize(Integer)"
    isSigned _ = True
 

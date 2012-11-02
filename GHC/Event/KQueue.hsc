@@ -1,6 +1,7 @@
 {-# LANGUAGE Trustworthy #-}
 {-# LANGUAGE CPP
            , ForeignFunctionInterface
+           , CApiFFI
            , GeneralizedNewtypeDeriving
            , NoImplicitPrelude
            , RecordWildCards
@@ -50,6 +51,8 @@ import qualified GHC.Event.Array as A
 #if defined(HAVE_KEVENT64)
 import Data.Int (Int64)
 import Data.Word (Word64)
+#elif defined(netbsd_HOST_OS)
+import Data.Int (Int64)
 #endif
 
 #include <sys/types.h>
@@ -172,7 +175,11 @@ data Event = KEvent {
     , filter :: {-# UNPACK #-} !Filter
     , flags  :: {-# UNPACK #-} !Flag
     , fflags :: {-# UNPACK #-} !FFlag
+#ifdef netbsd_HOST_OS
+    , data_  :: {-# UNPACK #-} !Int64
+#else
     , data_  :: {-# UNPACK #-} !CIntPtr
+#endif
     , udata  :: {-# UNPACK #-} !(Ptr ())
     } deriving Show
 
@@ -210,7 +217,11 @@ newtype FFlag = FFlag Word32
  , noteEOF = NOTE_EOF
  }
 
+#if SIZEOF_KEV_FLAGS == 4 /* kevent.flag: uint32_t or uint16_t. */
+newtype Flag = Flag Word32
+#else
 newtype Flag = Flag Word16
+#endif
     deriving (Eq, Show, Storable)
 
 #{enum Flag, Flag
@@ -218,7 +229,11 @@ newtype Flag = Flag Word16
  , flagDelete  = EV_DELETE
  }
 
+#if SIZEOF_KEV_FILTER == 4 /*kevent.filter: uint32_t or uint16_t. */
+newtype Filter = Filter Word32
+#else
 newtype Filter = Filter Word16
+#endif
     deriving (Bits, Eq, Num, Show, Storable)
 
 #{enum Filter, Filter
@@ -291,7 +306,7 @@ foreign import ccall safe "kevent64"
     c_kevent64 :: QueueFd -> Ptr Event -> CInt -> Ptr Event -> CInt -> CUInt
                -> Ptr TimeSpec -> IO CInt
 #elif defined(HAVE_KEVENT)
-foreign import ccall safe "kevent"
+foreign import capi safe "sys/event.h kevent"
     c_kevent :: QueueFd -> Ptr Event -> CInt -> Ptr Event -> CInt
              -> Ptr TimeSpec -> IO CInt
 #else
