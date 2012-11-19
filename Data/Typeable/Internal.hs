@@ -197,7 +197,7 @@ class Typeable a where
   -- ^ Takes a value of type @a@ and returns a concrete representation
   -- of that type.
 
-{-# DEPRECATED typeOf, typeOf1, typeOf2, typeOf3, typeOf4, typeOf5, typeOf6, typeOf7 "Use typeRep instead" #-}
+-- Keeping backwards-compatibility
 typeOf :: forall a. Typeable a => a -> TypeRep
 typeOf _ = typeRep (Proxy :: Proxy a)
 
