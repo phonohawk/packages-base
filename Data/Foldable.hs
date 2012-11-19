@@ -132,14 +132,14 @@ class Foldable t where
     -- | Left-associative fold of a structure.
     --
     -- @'foldl' f z = 'Prelude.foldl' f z . 'toList'@
-    foldl :: (a -> b -> a) -> a -> t b -> a
+    foldl :: (b -> a -> b) -> b -> t a -> b
     foldl f z t = appEndo (getDual (foldMap (Dual . Endo . flip f) t)) z
 
     -- | Left-associative fold of a structure.
     -- but with strict application of the operator.
     --
     -- @'foldl' f z = 'List.foldl'' f z . 'toList'@
-    foldl' :: (a -> b -> a) -> a -> t b -> a
+    foldl' :: (b -> a -> b) -> b -> t a -> b
     foldl' f z0 xs = foldr f' id xs z0
       where f' x k z = k $! f z x
 
@@ -195,7 +195,7 @@ foldrM f z0 xs = foldl f' return xs z0
 
 -- | Monadic fold over the elements of a structure,
 -- associating to the left, i.e. from left to right.
-foldlM :: (Foldable t, Monad m) => (a -> b -> m a) -> a -> t b -> m a
+foldlM :: (Foldable t, Monad m) => (b -> a -> m b) -> b -> t a -> m b
 foldlM f z0 xs = foldr f' return xs z0
   where f' x k z = f z x >>= k
 

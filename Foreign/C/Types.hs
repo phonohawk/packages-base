@@ -44,18 +44,18 @@ module Foreign.C.Types
         , CIntPtr(..),  CUIntPtr(..), CIntMax(..),   CUIntMax(..)
 
           -- ** Numeric types
-          -- | These types are are represented as @newtype@s of basic
+          -- | These types are represented as @newtype@s of basic
           -- foreign types, and are instances of
           -- 'Prelude.Eq', 'Prelude.Ord', 'Prelude.Num', 'Prelude.Read',
           -- 'Prelude.Show', 'Prelude.Enum', 'Typeable' and 'Storable'.
         , CClock(..),   CTime(..),    CUSeconds(..), CSUSeconds(..)
 
         -- extracted from CTime, because we don't want this comment in
-        -- the Haskell 2010 report:
+        -- the Haskell language reports:
 
-        -- | To convert 'CTime' to 'Data.Time.UTCTime', use the following formula:
+        -- | To convert 'CTime' to 'Data.Time.UTCTime', use the following:
         --
-        -- >  posixSecondsToUTCTime (realToFrac :: POSIXTime)
+        -- > \t -> posixSecondsToUTCTime (realToFrac t :: POSIXTime)
         --
 
           -- ** Floating types

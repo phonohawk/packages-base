@@ -379,22 +379,6 @@ blocked  = return False
 -- might get a the opposite behaviour. This is ok, because 'catch' is an
 -- 'IO' computation.
 --
--- Note that the "Prelude" also exports a function called
--- 'Prelude.catch' with a similar type to 'Control.Exception.catch',
--- except that the "Prelude" version only catches the IO and user
--- families of exceptions (as required by Haskell 98).
---
--- We recommend either hiding the "Prelude" version of 'Prelude.catch'
--- when importing "Control.Exception":
---
--- > import Prelude hiding (catch)
---
--- or importing "Control.Exception" qualified, to avoid name-clashes:
---
--- > import qualified Control.Exception as C
---
--- and then using @C.catch@
---
 #ifndef __NHC__
 catch   :: Exception e
         => IO a         -- ^ The computation to run
@@ -468,11 +452,6 @@ mapException f v = unsafePerformIO (catch (evaluate v)
 -- up to the next enclosing exception handler.
 --
 -- >  try a = catch (Right `liftM` a) (return . Left)
---
--- Note that "System.IO.Error" also exports a function called
--- 'System.IO.Error.try' with a similar type to 'Control.Exception.try',
--- except that it catches only the IO and user families of exceptions
--- (as required by the Haskell 98 @IO@ module).
 
 try :: Exception e => IO a -> IO (Either e a)
 try a = catch (a >>= \ v -> return (Right v)) (\e -> return (Left e))

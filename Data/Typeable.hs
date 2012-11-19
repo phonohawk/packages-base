@@ -42,13 +42,13 @@ module Data.Typeable
         Proxy (..),
 
         -- * The Typeable class
-        Typeable( typeRep ),     -- :: Proxy a -> TypeRep
+        Typeable( typeRep ),
 
         -- * For backwards compatibility
         typeOf, typeOf1, typeOf2, typeOf3, typeOf4, typeOf5, typeOf6, typeOf7,
 
         -- * Type-safe cast
-        cast,                   -- :: (Typeable a, Typeable b) => a -> Maybe b
+        cast,
         gcast,                  -- a generalisation of cast
 
         -- * Generalized casts for higher-order kinds
@@ -60,10 +60,10 @@ module Data.Typeable
         showsTypeRep,
 
         TyCon,          -- abstract, instance of: Eq, Show, Typeable
-        tyConString,    -- :: TyCon   -> String
-        tyConPackage,   -- :: TyCon   -> String
-        tyConModule,    -- :: TyCon   -> String
-        tyConName,      -- :: TyCon   -> String
+        tyConString,
+        tyConPackage,
+        tyConModule,
+        tyConName,
 
         -- * Construction of type representations
         -- mkTyCon,        -- :: String  -> TyCon

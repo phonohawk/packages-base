@@ -21,30 +21,28 @@
 
 module Data.Bits ( 
   Bits(
-    (.&.), (.|.), xor, -- :: a -> a -> a
-    complement,        -- :: a -> a
-    shift,             -- :: a -> Int -> a
-    rotate,            -- :: a -> Int -> a
-    bit,               -- :: Int -> a
-    setBit,            -- :: a -> Int -> a
-    clearBit,          -- :: a -> Int -> a
-    complementBit,     -- :: a -> Int -> a
-    testBit,           -- :: a -> Int -> Bool
+    (.&.), (.|.), xor,
+    complement,
+    shift,
+    rotate,
+    bit,
+    setBit,
+    clearBit,
+    complementBit,
+    testBit,
     bitSizeMaybe,
-    bitSize,           -- :: a -> Int
-    isSigned,          -- :: a -> Bool
-    shiftL, shiftR,    -- :: a -> Int -> a
-    unsafeShiftL, unsafeShiftR,  -- :: a -> Int -> a
-    rotateL, rotateR,  -- :: a -> Int -> a
-    popCount           -- :: a -> Int
+    bitSize,
+    isSigned,
+    shiftL, shiftR,
+    unsafeShiftL, unsafeShiftR,
+    rotateL, rotateR,
+    popCount
   ),
   FiniteBits(finiteBitSize),
 
   bitDefault,
   testBitDefault,
   popCountDefault
-  -- instance Bits Int
-  -- instance Bits Integer
  ) where
 
 -- Defines the @Bits@ class containing bit-based operations.
@@ -252,18 +250,22 @@ class Eq a => Bits a where
 class Bits b => FiniteBits b where
     finiteBitSize :: b -> Int
 
+-- The defaults below are written with lambdas so that e.g.
+--     bit = bitDefault
+-- is fully applied, so inlining will happen
+
 -- | Default implementation for 'bit'.
 --
 -- Note that: @bitDefault i = 1 `shiftL` i@
 bitDefault :: (Bits a, Num a) => Int -> a
-bitDefault i = 1 `shiftL` i
+bitDefault = \i -> 1 `shiftL` i
 {-# INLINE bitDefault #-}
 
 -- | Default implementation for 'testBit'.
 --
 -- Note that: @testBitDefault x i = (x .&. bit i) /= 0@
 testBitDefault ::  (Bits a, Num a) => a -> Int -> Bool
-testBitDefault x i = (x .&. bit i) /= 0
+testBitDefault = \x i -> (x .&. bit i) /= 0
 {-# INLINE testBitDefault #-}
 
 -- | Default implementation for 'popCount'.

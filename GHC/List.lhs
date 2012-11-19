@@ -19,7 +19,7 @@
 
 -- #hide
 module GHC.List (
-   -- [] (..),          -- Not Haskell 98; built in syntax
+   -- [] (..),          -- built-in syntax; can't be used in export list
 
    map, (++), filter, concat,
    head, last, tail, init, null, length, (!!),
@@ -166,7 +166,7 @@ filterFB c p x r | p x       = x `c` r
 -- can be inlined, and then (often) strictness-analysed,
 -- and hence the classic space leak on foldl (+) 0 xs
 
-foldl        :: (a -> b -> a) -> a -> [b] -> a
+foldl        :: (b -> a -> b) -> b -> [a] -> b
 foldl f z0 xs0 = lgo z0 xs0
              where
                 lgo z []     =  z
@@ -181,7 +181,7 @@ foldl f z0 xs0 = lgo z0 xs0
 --
 -- > last (scanl f z xs) == foldl f z xs.
 
-scanl                   :: (a -> b -> a) -> a -> [b] -> [a]
+scanl                   :: (b -> a -> b) -> b -> [a] -> [b]
 scanl f q ls            =  q : (case ls of
                                 []   -> []
                                 x:xs -> scanl f (f q x) xs)

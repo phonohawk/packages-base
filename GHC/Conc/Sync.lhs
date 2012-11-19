@@ -40,56 +40,56 @@ module GHC.Conc.Sync
         ( ThreadId(..)
 
         -- * Forking and suchlike
-        , forkIO        -- :: IO a -> IO ThreadId
+        , forkIO
         , forkIOUnmasked
         , forkIOWithUnmask
-        , forkOn      -- :: Int -> IO a -> IO ThreadId
+        , forkOn
         , forkOnIO    -- DEPRECATED
         , forkOnIOUnmasked
         , forkOnWithUnmask
-        , numCapabilities -- :: Int
-        , getNumCapabilities -- :: IO Int
-        , setNumCapabilities -- :: Int -> IO ()
-        , getNumProcessors   -- :: IO Int
-        , numSparks      -- :: IO Int
-        , childHandler  -- :: Exception -> IO ()
-        , myThreadId    -- :: IO ThreadId
-        , killThread    -- :: ThreadId -> IO ()
-        , throwTo       -- :: ThreadId -> Exception -> IO ()
-        , par           -- :: a -> b -> b
-        , pseq          -- :: a -> b -> b
+        , numCapabilities
+        , getNumCapabilities
+        , setNumCapabilities
+        , getNumProcessors
+        , numSparks
+        , childHandler
+        , myThreadId
+        , killThread
+        , throwTo
+        , par
+        , pseq
         , runSparks
-        , yield         -- :: IO ()
-        , labelThread   -- :: ThreadId -> String -> IO ()
-        , mkWeakThreadId -- :: ThreadId -> IO (Weak ThreadId)
+        , yield
+        , labelThread
+        , mkWeakThreadId
 
         , ThreadStatus(..), BlockReason(..)
-        , threadStatus  -- :: ThreadId -> IO ThreadStatus
+        , threadStatus
         , threadCapability
 
         -- * TVars
         , STM(..)
-        , atomically    -- :: STM a -> IO a
-        , retry         -- :: STM a
-        , orElse        -- :: STM a -> STM a -> STM a
-        , throwSTM      -- :: Exception e => e -> STM a
-        , catchSTM      -- :: Exception e => STM a -> (e -> STM a) -> STM a
-        , alwaysSucceeds -- :: STM a -> STM ()
-        , always        -- :: STM Bool -> STM ()
+        , atomically
+        , retry
+        , orElse
+        , throwSTM
+        , catchSTM
+        , alwaysSucceeds
+        , always
         , TVar(..)
-        , newTVar       -- :: a -> STM (TVar a)
-        , newTVarIO     -- :: a -> STM (TVar a)
-        , readTVar      -- :: TVar a -> STM a
-        , readTVarIO    -- :: TVar a -> IO a
-        , writeTVar     -- :: a -> TVar a -> STM ()
-        , unsafeIOToSTM -- :: IO a -> STM a
+        , newTVar
+        , newTVarIO
+        , readTVar
+        , readTVarIO
+        , writeTVar
+        , unsafeIOToSTM
 
         -- * Miscellaneous
         , withMVar
         , modifyMVar_
 
-        , setUncaughtExceptionHandler      -- :: (Exception -> IO ()) -> IO ()
-        , getUncaughtExceptionHandler      -- :: IO (Exception -> IO ())
+        , setUncaughtExceptionHandler
+        , getUncaughtExceptionHandler
 
         , reportError, reportStackOverflow
 
@@ -113,12 +113,14 @@ import GHC.Base
 import {-# SOURCE #-} GHC.IO.Handle ( hFlush )
 import {-# SOURCE #-} GHC.IO.Handle.FD ( stdout )
 import GHC.IO
+import GHC.IO.Encoding.UTF8
 import GHC.IO.Exception
 import GHC.Exception
+import qualified GHC.Foreign
 import GHC.IORef
 import GHC.MVar
+import GHC.Ptr
 import GHC.Real         ( fromIntegral )
-import GHC.Pack         ( packCString# )
 import GHC.Show         ( Show(..), showString )
 import GHC.Weak
 
@@ -427,10 +429,10 @@ Other applications like the graphical Concurrent Haskell Debugger
 -}
 
 labelThread :: ThreadId -> String -> IO ()
-labelThread (ThreadId t) str = IO $ \ s ->
-   let !ps  = packCString# str
-       !adr = byteArrayContents# ps in
-     case (labelThread# t adr s) of s1 -> (# s1, () #)
+labelThread (ThreadId t) str =
+    GHC.Foreign.withCString utf8 str $ \(Ptr p) ->
+    IO $ \ s ->
+     case labelThread# t p s of s1 -> (# s1, () #)
 
 --      Nota Bene: 'pseq' used to be 'seq'
 --                 but 'seq' is now defined in PrelGHC
