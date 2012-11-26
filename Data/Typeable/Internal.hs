@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-typeable-instances #-}
 {-# LANGUAGE Unsafe    #-}
 
 -----------------------------------------------------------------------------
