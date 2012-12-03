@@ -8,6 +8,24 @@
 {-# LANGUAGE StandaloneDeriving     #-}
 {-# LANGUAGE DeriveGeneric          #-}
 
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  GHC.Generics
+-- Copyright   :  (c) Universiteit Utrecht 2010-2011, University of Oxford 2012
+-- License     :  see libraries/base/LICENSE
+-- 
+-- Maintainer  :  libraries@haskell.org
+-- Stability   :  internal
+-- Portability :  non-portable
+--
+-- Support for generic programming with a sum-of-products view. 
+-- For more information, please visit the HaskellWiki page
+-- (<http://www.haskell.org/haskellwiki/GHC.Generics>)
+-- or use the generic-deriving package on Hackage:
+-- <http://hackage.haskell.org/package/generic-deriving>.
+-- 
+-----------------------------------------------------------------------------
+
 module GHC.Generics  (
   -- * Generic representation types
     V1, U1(..), Par1(..), Rec1(..), K1(..), M1(..)
@@ -170,7 +188,8 @@ class Generic a where
   to    :: (Rep a) x -> a
 
 
--- | Representable types of kind * -> * (not yet derivable)
+-- | Representable types of kind * -> *.
+-- This class is derivable in GHC with the DeriveGeneric flag on.
 class Generic1 f where
   -- | Generic representation type
   type Rep1 f :: * -> *

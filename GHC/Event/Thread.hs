@@ -6,6 +6,8 @@ module GHC.Event.Thread
     , ensureIOManagerIsRunning
     , threadWaitRead
     , threadWaitWrite
+    , threadWaitReadSTM
+    , threadWaitWriteSTM
     , closeFdWith
     , threadDelay
     , registerDelay
@@ -18,7 +20,7 @@ import Foreign.Ptr (Ptr)
 import GHC.Base
 import GHC.Conc.Sync (TVar, ThreadId, ThreadStatus(..), atomically, forkIO,
                       labelThread, modifyMVar_, newTVar, sharedCAF,
-                      threadStatus, writeTVar)
+                      threadStatus, writeTVar, newTVarIO, readTVar, retry,throwSTM,STM)
 import GHC.IO (mask_, onException)
 import GHC.IO.Exception (ioError)
 import GHC.MVar (MVar, newEmptyMVar, newMVar, putMVar, takeMVar)
@@ -94,6 +96,47 @@ threadWait evt fd = mask_ $ do
   if evt' `eventIs` evtClose
     then ioError $ errnoToIOError "threadWait" eBADF Nothing Nothing
     else return ()
+
+
+threadWaitSTM :: Event -> Fd -> IO (STM (), IO ())
+threadWaitSTM evt fd = mask_ $ do
+  m <- newTVarIO Nothing
+  Just mgr <- getSystemEventManager 
+  reg <- registerFd mgr (\reg e -> unregisterFd_ mgr reg >> atomically (writeTVar m (Just e))) fd evt
+  let waitAction =
+        do mevt <- readTVar m
+           case mevt of
+             Nothing -> retry
+             Just evt' ->
+               if evt' `eventIs` evtClose
+               then throwSTM $ errnoToIOError "threadWaitSTM" eBADF Nothing Nothing
+               else return ()
+  return (waitAction, unregisterFd_ mgr reg >> return ())
+
+-- | Allows a thread to use an STM action to wait for a file descriptor to be readable.
+-- The STM action will retry until the file descriptor has data ready.
+-- The second element of the return value pair is an IO action that can be used
+-- to deregister interest in the file descriptor. 
+--
+-- The STM action will throw an 'IOError' if the file descriptor was closed
+-- while the STM action is being executed.  To safely close a file descriptor
+-- that has been used with 'threadWaitReadSTM', use 'closeFdWith'.
+threadWaitReadSTM :: Fd -> IO (STM (), IO ())
+threadWaitReadSTM = threadWaitSTM evtRead
+{-# INLINE threadWaitReadSTM #-}
+
+-- | Allows a thread to use an STM action to wait until a file descriptor can accept a write.
+-- The STM action will retry while the file until the given file descriptor can accept a write.
+-- The second element of the return value pair is an IO action that can be used to deregister
+-- interest in the file descriptor. 
+--
+-- The STM action will throw an 'IOError' if the file descriptor was closed
+-- while the STM action is being executed.  To safely close a file descriptor
+-- that has been used with 'threadWaitWriteSTM', use 'closeFdWith'.
+threadWaitWriteSTM :: Fd -> IO (STM (), IO ())
+threadWaitWriteSTM = threadWaitSTM evtWrite
+{-# INLINE threadWaitWriteSTM #-}
+
 
 -- | Retrieve the system event manager.
 --
