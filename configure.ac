@@ -28,7 +28,7 @@ AC_CHECK_HEADERS([ctype.h errno.h fcntl.h inttypes.h limits.h signal.h sys/resou
 
 # Enable large file support. Do this before testing the types ino_t, off_t, and
 # rlim_t, because it will affect the result of that test.
-AC_SYS_LARGEFILE
+FP_SYS_LARGEFILE
 
 dnl ** check for wide-char classifications
 dnl FreeBSD has an emtpy wctype.h, so test one of the affected

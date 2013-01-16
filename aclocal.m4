@@ -1,3 +1,54 @@
+# FP_SYS_LARGEFILE
+# -------------------------------------------------------- This is a
+# Temporary workaround for the broken AC_SYS_LARGEFILE in autoconf >=
+# 2.68. This macro is a drop-in replacement for
+# AC_SYS_LARGEFILE. (#7537)
+AC_DEFUN([FP_SYS_LARGEFILE],
+[AC_ARG_ENABLE(largefile,
+           [  --disable-largefile     omit support for large files])
+if test "$enable_largefile" != no; then
+
+  AC_CACHE_CHECK([for special C compiler options needed for large files],
+    ac_cv_sys_largefile_CC,
+    [ac_cv_sys_largefile_CC=no
+     if test "$GCC" != yes; then
+       ac_save_CC=$CC
+       while :; do
+     # IRIX 6.2 and later do not support large files by default,
+     # so use the C compiler's -n32 option if that helps.
+     AC_LANG_CONFTEST([AC_LANG_PROGRAM([_AC_SYS_LARGEFILE_TEST_INCLUDES])])
+     AC_COMPILE_IFELSE([], [break])
+     CC="$CC -n32"
+     AC_COMPILE_IFELSE([], [ac_cv_sys_largefile_CC=' -n32'; break])
+     break
+       done
+       CC=$ac_save_CC
+       rm -f conftest.$ac_ext
+    fi])
+  if test "$ac_cv_sys_largefile_CC" != no; then
+    CC=$CC$ac_cv_sys_largefile_CC
+  fi
+
+  _AC_SYS_LARGEFILE_MACRO_VALUE(_FILE_OFFSET_BITS, 64,
+    ac_cv_sys_file_offset_bits,
+    [Number of bits in a file offset, on hosts where this is settable.],
+    [_AC_SYS_LARGEFILE_TEST_INCLUDES])
+  if test $ac_cv_sys_file_offset_bits = unknown; then
+    _AC_SYS_LARGEFILE_MACRO_VALUE(_LARGE_FILES, 1,
+      ac_cv_sys_large_files,
+      [Define for large files, on AIX-style hosts.],
+      [_AC_SYS_LARGEFILE_TEST_INCLUDES])
+  fi
+
+  AH_VERBATIM([_DARWIN_USE_64_BIT_INODE],
+[/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# undef _DARWIN_USE_64_BIT_INODE
+#endif])
+  AC_DEFINE([_DARWIN_USE_64_BIT_INODE], [1])
+fi
+])# FP_SYS_LARGEFILE
+
 # FP_COMPUTE_INT(EXPRESSION, VARIABLE, INCLUDES, IF-FAILS)
 # --------------------------------------------------------
 # Assign VARIABLE the value of the compile-time EXPRESSION using INCLUDES for
